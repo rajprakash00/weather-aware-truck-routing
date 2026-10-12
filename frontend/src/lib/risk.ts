@@ -1,3 +1,5 @@
+import type { ExpressionSpecification } from 'maplibre-gl'
+
 export interface RiskMeta {
   level: number
   label: string
@@ -18,4 +20,14 @@ export const ALT_ROUTE_COLOR = '#696f7b'
 
 export function riskMeta(level: number): RiskMeta {
   return RISK_LEVELS[level] ?? RISK_LEVELS[1]
+}
+
+/** Palette lookup on any risk-valued expression, e.g. ['get', 'risk']. */
+export function riskColorExpression(value: ExpressionSpecification): ExpressionSpecification {
+  const expression: unknown[] = ['match', value]
+  for (const level of [1, 2, 3, 4, 5]) {
+    expression.push(level, RISK_LEVELS[level].color)
+  }
+  expression.push(RISK_LEVELS[1].color)
+  return expression as ExpressionSpecification
 }

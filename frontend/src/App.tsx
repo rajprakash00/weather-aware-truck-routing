@@ -25,6 +25,7 @@ const DEFAULT_VALUES: TripFormValues = {
 export default function App() {
   const [values, setValues] = useState<TripFormValues>(DEFAULT_VALUES)
   const [result, setResult] = useState<SolveResponse | null>(null)
+  const [solvedRequest, setSolvedRequest] = useState<SolveRequest | null>(null)
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [focus, setFocus] = useState<MapFocus | null>(null)
   const [fitRequest, setFitRequest] = useState<{ index: number; key: number } | null>(null)
@@ -36,9 +37,10 @@ export default function App() {
   const mutation = useMutation<SolveResponse, SolveError, SolveArgs>({
     mutationFn: ({ request, signal }) => solveRoutes(request, signal),
     retry: false,
-    onSuccess: (data) => {
+    onSuccess: (data, variables) => {
       setSolveSeconds((Date.now() - startedAtRef.current) / 1000)
       setResult(data)
+      setSolvedRequest(variables.request)
       setSelectedIndex(data.recommended_route_index)
       setFitRequest(null)
       setFocus(null)
@@ -135,6 +137,7 @@ export default function App() {
         <section className="h-[56dvh] min-h-[360px] shrink-0 lg:h-auto lg:min-h-0">
           <MapView
             data={result}
+            request={solvedRequest}
             selectedIndex={selectedIndex}
             onSelectRoute={setSelectedIndex}
             fitRequest={fitRequest}

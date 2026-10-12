@@ -86,6 +86,24 @@ export interface SolveRequest {
   checkpoint_mi: number
 }
 
+export interface HeatmapRequest extends SolveRequest {
+  route_index: number
+}
+
+export interface HeatmapPoint {
+  lat: number
+  lon: number
+  risk: number[]
+}
+
+export interface HeatmapResponse {
+  route_index: number
+  hours_utc: string[]
+  bounds: [number, number, number, number]
+  points: HeatmapPoint[]
+  computed_at: string
+}
+
 export interface ApiErrorBody {
   detail?: unknown
 }

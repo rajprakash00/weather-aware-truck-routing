@@ -1,4 +1,4 @@
-import type { SolveRequest, SolveResponse } from './types'
+import type { HeatmapRequest, HeatmapResponse, SolveRequest, SolveResponse } from './types'
 
 export class SolveError extends Error {
   status: number
@@ -23,13 +23,14 @@ function firstFieldError(body: unknown): string | null {
   return null
 }
 
-export async function solveRoutes(
-  request: SolveRequest,
+async function postJson<ResponseBody>(
+  path: string,
+  request: unknown,
   signal?: AbortSignal,
-): Promise<SolveResponse> {
+): Promise<ResponseBody> {
   let response: Response
   try {
-    response = await fetch('/api/routes', {
+    response = await fetch(path, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(request),
@@ -51,7 +52,21 @@ export async function solveRoutes(
     throw new SolveError(detail, response.status, collectFieldErrors(body))
   }
 
-  return (await response.json()) as SolveResponse
+  return (await response.json()) as ResponseBody
+}
+
+export function solveRoutes(
+  request: SolveRequest,
+  signal?: AbortSignal,
+): Promise<SolveResponse> {
+  return postJson<SolveResponse>('/api/routes', request, signal)
+}
+
+export function solveHeatmap(
+  request: HeatmapRequest,
+  signal?: AbortSignal,
+): Promise<HeatmapResponse> {
+  return postJson<HeatmapResponse>('/api/heatmap', request, signal)
 }
 
 function collectFieldErrors(body: unknown): Record<string, string[]> {

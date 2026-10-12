@@ -19,3 +19,7 @@ services:
         value: https://*.onrender.com
       - key: TOMTOM_API_KEY
         sync: false
+      - key: OPEN_METEO_BASE_URL
+        sync: false
+      - key: OPEN_METEO_API_KEY
+        sync: false

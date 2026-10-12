@@ -14,8 +14,8 @@ services:
       - key: DJANGO_SECRET_KEY
         generateValue: true
       - key: DJANGO_ALLOWED_HOSTS
-        value: weather-aware-truck-routing.onrender.com
+        value: .onrender.com
       - key: DJANGO_CSRF_TRUSTED_ORIGINS
-        value: https://weather-aware-truck-routing.onrender.com
+        value: https://*.onrender.com
       - key: TOMTOM_API_KEY
         sync: false

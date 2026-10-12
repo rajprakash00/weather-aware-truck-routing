@@ -1,4 +1,4 @@
-"""Request validation for POST /api/routes."""
+"""Request validation for POST /api/routes and POST /api/heatmap."""
 
 from __future__ import annotations
 
@@ -52,4 +52,18 @@ class RouteRequestSerializer(serializers.Serializer):
         choices=(10, 25, 50),
         default=25,
         help_text="Checkpoint spacing in miles.",
+    )
+
+
+class HeatmapRequestSerializer(RouteRequestSerializer):
+    """Same trip fields as /api/routes plus the route to build the corridor around.
+
+    The trip fields must match the solve request so the backend re-resolves the
+    identical route from the route cache.
+    """
+
+    route_index = serializers.IntegerField(
+        min_value=0,
+        max_value=2,
+        help_text="Index of the selected route from the /api/routes response.",
     )

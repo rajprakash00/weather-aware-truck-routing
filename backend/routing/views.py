@@ -1,4 +1,5 @@
 from django.http import JsonResponse
+from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -9,6 +10,11 @@ from .serializers import RouteRequestSerializer
 
 def health(request):
     return JsonResponse({'status': 'ok'})
+
+
+def home(request):
+    """Serve the built React app shell (frontend/dist via WhiteNoise)."""
+    return render(request, 'routing/index.html')
 
 
 @api_view(['POST'])

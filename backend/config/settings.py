@@ -141,6 +141,17 @@ STATIC_URL = 'static/'
 
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# WhiteNoise pre-compresses static assets (the Vite bundle is ~1.3 MB uncompressed).
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage'},
+}
+
+# Frontend build (Vite) served by WhiteNoise. Run `npm run build` in frontend/ first.
+FRONTEND_DIST = Path(os.environ.get('FRONTEND_DIST', BASE_DIR.parent / 'frontend' / 'dist'))
+if FRONTEND_DIST.is_dir():
+    STATICFILES_DIRS = [('app', str(FRONTEND_DIST))]
+
 
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration

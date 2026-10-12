@@ -1,0 +1,18 @@
+{% load static vite %}<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="{% static 'app/favicon.svg' %}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Pick the safest of three truck routes between two US cities using hour-level weather, load weight, and travel time."
+    />
+    <title>ClearHaul · Weather-aware truck routing</title>
+    {% vite_css %}
+  </head>
+  <body>
+    <div id="root"></div>
+    {% vite_js %}
+  </body>
+</html>

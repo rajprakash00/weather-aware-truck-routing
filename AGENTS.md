@@ -8,8 +8,9 @@ routes between two US cities using weather, load weight, and travel time.
 - `backend/` — Django + DRF API. All third-party calls (TomTom, Open-Meteo) happen here.
   - `backend/routing/risk.py` — pure risk engine (no network, no DB). Keep it pure and tested.
   - `backend/spikes/` — one-off provider verification scripts.
-- `frontend/` — React (Vite + TypeScript), MapLibre map. Created on Day 3. Never calls
-  third-party APIs directly.
+- `frontend/` — React (Vite + TypeScript), MapLibre map. Never calls third-party APIs
+  directly. Built output is served by Django/WhiteNoise; `backend/routing/templatetags/vite.py`
+  injects the hashed asset URLs into `routing/templates/routing/index.html`.
 - `.handoff/current.md` — session journal (gitignored). If you are an agent starting a new
   session here: read it first, then continue from "Next session focus".
 
@@ -21,10 +22,15 @@ Backend (run from `backend/`):
 - `.venv/bin/pytest -q` — risk engine tests
 - `.venv/bin/python manage.py runserver` — dev API on :8000
 
-Frontend (run from `frontend/`, Day 3+):
+Frontend (run from `frontend/`):
 
 - `npm install`
-- `npm run dev`
+- `npm run dev` — Vite on :5173, proxies `/api` to :8000
+- `npm run build` — typecheck + production build into `frontend/dist`
+- `npm run lint`
+
+Serving the built app locally: `cd frontend && npm run build && cd ../backend &&
+.venv/bin/python manage.py collectstatic --noinput && .venv/bin/python manage.py runserver`.
 
 ## Rules
 

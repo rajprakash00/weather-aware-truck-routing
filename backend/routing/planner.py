@@ -80,7 +80,8 @@ def plan_trip(
     destination = geocoding.geocode_city(destination_query)
     origin_point = (origin["latitude"], origin["longitude"])
     destination_point_ll = (destination["latitude"], destination["longitude"])
-    if haversine_mi(origin_point, destination_point_ll) < MIN_TRIP_MI:
+    trip_mi = haversine_mi(origin_point, destination_point_ll)
+    if trip_mi < MIN_TRIP_MI:
         raise ValidationError({"destination": "Destination must differ from the origin."})
 
     departure_utc = _resolve_departure(departure, origin["timezone"])
@@ -93,6 +94,7 @@ def plan_trip(
         destination=destination_point_ll,
         weight_kg=weight_kg,
         departure_utc=departure_utc,
+        alternatives=tomtom.alternatives_for_distance(trip_mi),
     )
     routes = _dedupe_routes([_to_route(record) for record in records])[:MAX_ROUTES]
     routes = _synthesize_to_three(

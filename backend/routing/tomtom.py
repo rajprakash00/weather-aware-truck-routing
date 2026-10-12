@@ -33,6 +33,15 @@ ROUTES_TTL_LIVE_SECONDS = 15 * 60
 LIVE_WINDOW = timedelta(minutes=15)
 ROUTES_VERSION = "tomtom-v1"
 
+# TomTom cancels very long multi-alternative requests with a 5xx compute-time
+# error (observed on Boston to Los Angeles at alternatives=5). Beyond this
+# great-circle distance, ask for one route and let the planner synthesize.
+LONG_TRIP_MI = 1800
+
+
+def alternatives_for_distance(distance_mi: float) -> int:
+    return 1 if distance_mi > LONG_TRIP_MI else 5
+
 
 def vehicle_weight_kg(load_lb: float) -> int:
     return CURB_WEIGHT_KG + round(load_lb / LB_PER_KG)
@@ -113,12 +122,34 @@ def _fetch(
     if depart_at:
         params["departAt"] = depart_at
 
-    payload = request_json("tomtom", "GET", f"{ROUTES_URL}/{path}/json", params=params, timeout=90)
+    try:
+        payload = request_json(
+            "tomtom", "GET", f"{ROUTES_URL}/{path}/json", params=params, timeout=90
+        )
+    except ProviderError as exc:
+        if alternatives > 1 and _is_compute_limit(exc):
+            logger.warning(
+                "tomtom maxAlternatives=%d hit its compute limit; retrying with 1", alternatives
+            )
+            return _fetch(
+                origin=origin,
+                destination=destination,
+                weight_kg=weight_kg,
+                depart_at=depart_at,
+                via=via,
+                alternatives=1,
+            )
+        raise
     records = [_parse_route(raw) for raw in payload.get("routes", [])]
     records = [record for record in records if record]
     if not records:
         raise ProviderError("tomtom", "No truck routes returned for this pair", status=502)
     return records
+
+
+def _is_compute_limit(exc: ProviderError) -> bool:
+    """True for TomTom's 5xx compute-time error, where fewer alternatives can succeed."""
+    return exc.status == 502 and "HTTP 5" in str(exc)
 
 
 def _parse_route(raw: dict) -> dict | None:

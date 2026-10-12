@@ -6,4 +6,5 @@ from routing import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/health/', views.health, name='health'),
+    path('api/routes', views.solve_routes, name='routes'),
 ]

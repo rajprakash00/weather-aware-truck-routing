@@ -62,6 +62,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -149,3 +150,11 @@ MAILERS = {
         'BACKEND': 'django.core.mail.backends.console.EmailBackend',
     },
 }
+
+
+# Weather-aware truck routing
+
+TOMTOM_API_KEY = os.environ.get('TOMTOM_API_KEY', '')
+
+# Provider response cache (geocoding, routes, weather)
+ROUTING_CACHE_DIR = os.environ.get('ROUTING_CACHE_DIR', str(BASE_DIR / '.cache'))

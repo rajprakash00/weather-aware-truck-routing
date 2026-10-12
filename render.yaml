@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: weather-aware-truck-routing
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python manage.py migrate --noinput && python manage.py collectstatic --noinput
+    startCommand: gunicorn config.wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.13.15"
+      - key: DJANGO_DEBUG
+        value: "0"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_ALLOWED_HOSTS
+        value: weather-aware-truck-routing.onrender.com
+      - key: DJANGO_CSRF_TRUSTED_ORIGINS
+        value: https://weather-aware-truck-routing.onrender.com
+      - key: TOMTOM_API_KEY
+        sync: false

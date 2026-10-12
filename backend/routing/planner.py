@@ -68,14 +68,19 @@ class Route:
     synthesized: bool = False
 
 
-def plan_trip(
+def resolve_trip_routes(
     *,
     origin_query: str,
     destination_query: str,
     load_lb: float,
     departure: datetime | None,
-    checkpoint_mi: int,
-) -> dict:
+) -> tuple[dict, dict, datetime, int, list[Route]]:
+    """Geocode both ends and resolve the cached candidate routes.
+
+    Shared by the trip solver and the heatmap so both agree on route identity,
+    ordering, and the resolved departure. Only cached provider calls happen
+    here: a warm route cache means no TomTom traffic.
+    """
     origin = geocoding.geocode_city(origin_query)
     destination = geocoding.geocode_city(destination_query)
     origin_point = (origin["latitude"], origin["longitude"])
@@ -86,7 +91,6 @@ def plan_trip(
 
     departure_utc = _resolve_departure(departure, origin["timezone"])
     _validate_departure(departure_utc)
-    departure_epoch = departure_utc.timestamp()
     weight_kg = tomtom.vehicle_weight_kg(load_lb)
 
     records = tomtom.fetch_candidate_routes(
@@ -101,6 +105,24 @@ def plan_trip(
         routes, origin_point, destination_point_ll, weight_kg, departure_utc
     )
     routes.sort(key=lambda route: route.duration_s)
+    return origin, destination, departure_utc, weight_kg, routes
+
+
+def plan_trip(
+    *,
+    origin_query: str,
+    destination_query: str,
+    load_lb: float,
+    departure: datetime | None,
+    checkpoint_mi: int,
+) -> dict:
+    origin, destination, departure_utc, weight_kg, routes = resolve_trip_routes(
+        origin_query=origin_query,
+        destination_query=destination_query,
+        load_lb=load_lb,
+        departure=departure,
+    )
+    departure_epoch = departure_utc.timestamp()
 
     samples = [_sample_route(route, checkpoint_mi, departure_epoch) for route in routes]
     entries = _fetch_weather(samples)
@@ -131,7 +153,7 @@ def plan_trip(
         "origin": origin,
         "destination": destination,
         "departure": {
-            "utc": _iso_utc(departure_epoch),
+            "utc": iso_utc(departure_epoch),
             "local": datetime.fromtimestamp(
                 departure_epoch, _zone(origin["timezone"])
             ).isoformat(timespec="minutes"),
@@ -147,7 +169,7 @@ def plan_trip(
         },
         "routes": payload_routes,
         "warnings": warnings,
-        "computed_at": _iso_utc(datetime.now(timezone.utc).timestamp()),
+        "computed_at": iso_utc(datetime.now(timezone.utc).timestamp()),
     }
 
 
@@ -189,7 +211,7 @@ def _zone(name: str) -> ZoneInfo | timezone:
         return timezone.utc
 
 
-def _iso_utc(epoch: float) -> str:
+def iso_utc(epoch: float) -> str:
     return (
         datetime.fromtimestamp(epoch, timezone.utc)
         .isoformat(timespec="minutes")
@@ -357,7 +379,7 @@ def _build_checkpoints(
                 "mi": round(miles, 2),
                 "lat": round(lat, 5),
                 "lon": round(lon, 5),
-                "eta_utc": _iso_utc(eta),
+                "eta_utc": iso_utc(eta),
                 "eta_local": datetime.fromtimestamp(eta, zone).isoformat(timespec="minutes"),
                 "timezone": timezone_name,
                 "beyond_48h": (eta - departure_epoch) > BEYOND_48H_SECONDS,

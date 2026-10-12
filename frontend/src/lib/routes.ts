@@ -1,9 +1,8 @@
 import type { Feature, FeatureCollection, LineString, Point } from 'geojson'
-import type { ExpressionSpecification } from 'maplibre-gl'
 
 import type { Checkpoint, Route } from '../api/types'
 import { formatClock, formatRain, formatSnow, formatTemp, formatWind } from './format'
-import { riskMeta } from './risk'
+import { riskColorExpression, riskMeta } from './risk'
 
 export interface RouteSegmentProps {
   route: number
@@ -13,21 +12,7 @@ export interface RouteSegmentProps {
 
 export type CheckpointProps = Checkpoint & { route: number; label: string }
 
-export const ROUTE_COLOR_EXPRESSION: ExpressionSpecification = [
-  'match',
-  ['get', 'risk'],
-  1,
-  riskMeta(1).color,
-  2,
-  riskMeta(2).color,
-  3,
-  riskMeta(3).color,
-  4,
-  riskMeta(4).color,
-  5,
-  riskMeta(5).color,
-  riskMeta(1).color,
-]
+export const ROUTE_COLOR_EXPRESSION = riskColorExpression(['get', 'risk'])
 
 function nearestVertex(geometry: [number, number][], lat: number, lon: number): number {
   let best = 0

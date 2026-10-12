@@ -8,4 +8,5 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('api/health/', views.health, name='health'),
     path('api/routes', views.solve_routes, name='routes'),
+    path('api/heatmap', views.solve_heatmap, name='heatmap'),
 ]

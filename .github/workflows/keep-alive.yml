@@ -1,0 +1,25 @@
+# Keeps the free Render instance from spinning down (15 min idle timeout).
+# Remove this workflow if the service moves to a paid plan.
+name: keep-alive
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: keep-alive
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ping /api/health/
+        run: >
+          curl --fail --silent --show-error
+          --retry 2 --retry-delay 15 --max-time 90
+          https://weather-aware-truck-routing-osf1.onrender.com/api/health/
